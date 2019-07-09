@@ -7,8 +7,8 @@ import java.net.*;
  * 役割：全体の管理。クライアントからの接続を待ち、個別の通信スレッドを起動する
  * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
  */
-public class MyServer extends Thread {
-
+public class MyServer extends Thread
+{
     int port = 13579; // アプリケーションの通信ポート番号(適当に決定)
     
     private boolean status = true; // 状態管理フラグ
@@ -41,7 +41,9 @@ public class MyServer extends Thread {
      */
     @Override
     public void run() {
+        
         // サーバの接続ルーチンを開始する
+        
         try {
             // 接続依頼を受け付けるためのソケットを生成
             ServerThread serverThread;
@@ -53,20 +55,21 @@ public class MyServer extends Thread {
             // クライアントとの接続受け付け処理
             //----------------------------------------
             // クライアントからの接続依頼を待つ
-            System.out.println("Waiting request to connect...");
-            
-            // 接続依頼が来るまで待機
-            Socket socket = serverSocket.accept(); 
-            // ※接続依頼があると以下の処理に進みます
+            while(status) {
+                System.out.println("Waiting request to connect...");
+                // 接続依頼が来るまで待機
+                Socket socket = serverSocket.accept(); 
+                // ※接続依頼があると以下の処理に進みます
 
-            // 接続依頼のあったクライアントとのソケットを渡し、通信処理部(ServerThread)を生成
-            serverThread = new ServerThread(this, socket);
+                // 接続依頼のあったクライアントとのソケットを渡し、通信処理部(ServerThread)を生成
+                serverThread = new ServerThread(this, socket);
 
-            // 通信処理部を起動
-            serverThread.start();
+                // 通信処理部を起動
+                serverThread.start();
 
-            // 接続をメッセージ配信スレッドに登録する
-            sender.addConnection(serverThread);
+                // 接続をメッセージ配信スレッドに登録する
+                sender.addConnection(serverThread);
+            }
 //******************************************************************
         } catch (Exception ex) {
             // クライアントとの接続処理中に何らかの例外が発生した(接続失敗)
@@ -100,7 +103,7 @@ public class MyServer extends Thread {
     public void close() {
         if (sender != null) {
             sender.closeAll(); // 全接続先との通信停止
-            sender = null;  // 配信スレッド自身の削除
+            sender = null; // 配信スレッド自身の削除
         }
         // クライアントを受け付けるループを維持するフラグをfalseにして停止させる
         status = false;

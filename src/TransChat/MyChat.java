@@ -10,6 +10,8 @@ import static javafx.application.Application.launch;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import static javafx.scene.input.KeyCode.ENTER;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
@@ -75,6 +77,9 @@ public class MyChat extends Application {
         input.setMinWidth(520);
         input.setPrefWidth(520);
         input.setMaxWidth(520);
+        // キーが押された際のイベントを追加
+        input.setOnKeyPressed(event->onKeyPressedForInput(event));
+        
         // フォントを見やすく変更
         input.setStyle("-fx-font:14pt Meiryo;");
 
@@ -91,10 +96,12 @@ public class MyChat extends Application {
         choice = new ChoiceBox<>();
         choice.getItems().addAll(lang_list); // 言語リストから項目を作成する
         choice.setStyle("-fx-font:14pt Meiryo;");
-
         // 選択時の動作を設定
         // オブジェクト指向言語の演習で示したサンプルを参考に自分で設定する
         // 言語番号の設定はこのプログラムにあるsetLanguageTypeを使うこと
+        choice.setOnAction(
+                e->setLanguageType(lang_list.indexOf(((ChoiceBox)e.getSource()).getValue()))
+        );
         
         // 最初の選択肢が選択された状態を初期状態にする
         choice.getSelectionModel().selectFirst();
@@ -146,12 +153,11 @@ public class MyChat extends Application {
      * 「通信開始」メニュー選択時の処理
      */
     void connectAction(Stage stage) {
-        
         // すでに接続中の場合にはエラー表示
         if (netout != null) {
             append("すでにサーバと接続中です.");
             return;
-        }
+        } 
 
 //******************************************************************
         //--------------------------------------------
@@ -159,15 +165,20 @@ public class MyChat extends Application {
         //--------------------------------------------
         // ここにダイアログを表示して情報を取得する処理を入れる
         // (1) ダイアログのオブジェクトの生成
+        ConnectDialog dialog = new ConnectDialog(stage);
         
         // (2) ダイアログの表示 ※閉じられるまで処理を止める
-
+        dialog.showAndWait();
+        
         // (3) キャンセルボタン押下時の処理
         // ※「キャンセルされました」と画面表示してメソッドを終了(return)する
         // ダイアログから入力欄の内容を取得したときにnullであるならばキャンセルが
         // 押された場合である。接続ボタンが押された場合はnull以外の値を持っている。
         // ※ 150-153行目を参考にして作成してください。
-        
+        if(dialog.getHost_val() == null && dialog.getUser_val() == null) {
+            append("キャンセルされました");
+            return;
+        }
 
         // (4) ホスト名をダイアログから取得
         // ※必要なゲッターをダイアログ側で用意すること
@@ -177,8 +188,9 @@ public class MyChat extends Application {
         String hostname = "localhost";
         // ダイアログからの取得が可能な場合は，取得した情報で
         // hostnameを上書きする，取得できない場合はlocalhostを使う
-
-        
+        if(!dialog.getUser_val().isEmpty()) {
+            hostname = dialog.getHost_val();
+        }
         //--------------------------------------------
 
         // (5) ユーザ名をダイアログから取得
@@ -194,8 +206,9 @@ public class MyChat extends Application {
         }
         // ダイアログからの取得が可能な場合は，取得した情報で
         // usernameを上書きする，取得できない場合はホスト名とする
-
-        
+        if(!dialog.getUser_val().isEmpty()) {
+            username = dialog.getUser_val();
+        }
         //--------------------------------------------
         
 //******************************************************************
@@ -252,6 +265,13 @@ public class MyChat extends Application {
         input.setText("");
     }
     
+    /**
+     * キーが押された場合の処理
+     */
+    void onKeyPressedForInput(KeyEvent event) {
+        if(event.getCode() == ENTER) sendAction();
+    }
+    
     //------------------------------------------------------------------
     /**
      * 選択中の言語種別を返す(翻訳機能と連動させる際に用いる)
@@ -282,7 +302,7 @@ public class MyChat extends Application {
         }
 
         // 送信メッセージの生成
-        str = username + "\t" + str; // ユーザ名＋メッセージ
+        str = getLanguageType() + "\t" + username + "\t" + str; // 言語番号 ユーザ名 メッセージ
 
         // メッセージの送信
         if (netout != null) {  // サーバと接続済みかを確認
@@ -290,7 +310,17 @@ public class MyChat extends Application {
             netout.flush();
         }
     }
-
+    
+    /**
+     * 切断メッセージ送信処理
+     */
+    public void sendClosedMessage() {
+        // メッセージの送信
+        if (netout != null) {  // サーバと接続済みかを確認
+            netout.print(username+"との接続が切断されました."); // サーバにメッセージを送信する
+            netout.flush();
+        }
+    }
     //------------------------------------------------------------------
     /**
      * 出力欄にメッセージを追記する
@@ -311,6 +341,8 @@ public class MyChat extends Application {
      */
     public void close() {
         if (netout != null) {
+            // 切断メッセージの送信
+            sendClosedMessage();
             // 出力インタフェースを閉じる
             netout = null;
             // クライアント接続を切断
@@ -340,6 +372,5 @@ public class MyChat extends Application {
      */
     public static void main(String[] args) {
         launch(args);  // JavaFXアプリケーションを起動する
-    }
-    
+    } 
 }

@@ -3,6 +3,8 @@ package WebTranslator;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 翻訳サイト(Excite)のサービスを使って文字列を翻訳する
@@ -37,10 +39,10 @@ public class WebTranslator {
         WebTranslator gwc = new WebTranslator();
         
         // 翻訳を実行（例：こんにちはを英語に翻訳）した結果をresultに代入
-        String result = gwc.translation("こんにちは", 0, 1);
+        String str = gwc.translation("こんにちは", 0, 1);
         
         // こんにちはを英訳した結果(Webコンテンツ(HTML))を表示
-        System.out.println(result);
+        System.out.println(str);
     }
 
     //=========================================================================
@@ -106,12 +108,24 @@ public class WebTranslator {
         }
 
         //===========================================================
-        // 以下に翻訳結果の抽出処理が入る
+        // 翻訳機能を利用するためにWebTranslatorの実体を生成
+        WebTranslator gwc = new WebTranslator();
         
+        // 翻訳を実行
+        String reg = "<textarea id=\"after\" .*>.*</textarea>";
+        Pattern p = Pattern.compile (reg);
+        Matcher m = p.matcher(result);
+        while(m.find()) {
+            String g = m.group();
+            String[] split1 = g.split("<textarea id=\"after\" .*?>");
+            String[] split2 = split1[1].split("</textarea>");
+            result = split2[0];
+        }
+        
+        // こんにちはを英訳した結果(Webコンテンツ(HTML))を表示
         //===========================================================
         
         // 最後にresultを返す
         return result;
     }
-  
 }

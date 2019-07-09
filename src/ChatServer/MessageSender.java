@@ -8,8 +8,9 @@ import java.util.*;
  * 役割：接続してきたクライアントをリストし、受信発言を全クライアントに配信する
  * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
  */
-public class MessageSender {
-    ArrayList<ServerThread> clist;     // 配信先クライアントのリスト
+public class MessageSender
+{
+    ArrayList<ServerThread> clist; // 配信先クライアントのリスト
 
     //================================================================
     /**
@@ -41,20 +42,23 @@ public class MessageSender {
             System.out.println("メッセージ送信先が見つかりません.");
             return; // sendMessageを終了
         }
-        
+
 //******************************************************************
         //----------------------------------------
         // 【メイン処理】クライアントにメッセージを送信する
         //----------------------------------------
-        // リストの先頭のクライアントとの接続を取得
-        ServerThread serv = (ServerThread) (clist.get(0));
+        for(ServerThread element : clist) {
+            // 各要素のクライアントとの接続を取得
+            ServerThread serv = (ServerThread)element;
 
-        // クライアントへの出力インタフェースを取得
-        PrintWriter sw = serv.getWriter();
+            // クライアントへの出力インタフェースを取得
+            PrintWriter sw = serv.getWriter();
 
-        // メッセージの書き出し
-        sw.print(str);
-        sw.flush();
+            // メッセージの書き出し
+            sw.print(str);
+            sw.flush();
+        }
+        
 //******************************************************************
 
         //----------------------------------------
@@ -77,7 +81,7 @@ public class MessageSender {
     public void addConnection(ServerThread serv) {
         clist.add(serv); // 新たなクライアントとの接続を配信先リストに追加
     }
-
+    
     //================================================================
     /**
      * 指定クライアントを配信先リストから除外
@@ -91,16 +95,17 @@ public class MessageSender {
             // 引数で指定されたスレッドをリストから除外
             clist.remove(serv);
             // 除外されたかを確認
-            if (clist.indexOf(serv) == -1){ // リストに無いとき-1が返る
+            if (clist.indexOf(serv) == -1) { // リストに無いとき-1が返る
                 System.out.println(index+"番目のクライアントを切断しました.");
-            }else{
+            } else {
                 System.out.println(index+"番目のクライアント切断に失敗しました.");
             }
-        }else{
+        } else {
             // ここには入らない予定
             System.err.println(index+"番目のクライアントが選択されました.");
         }
     }
+    
     //================================================================
     /**
      * 終了処理：すべての接続を一括で終了する
@@ -108,7 +113,7 @@ public class MessageSender {
     public void closeAll() {
         System.out.println("全クライアントとの接続を終了します.");
         // clistの解放
-        for (ServerThread serv : clist){
+        for (ServerThread serv : clist) {
             serv.close();
         }
     }

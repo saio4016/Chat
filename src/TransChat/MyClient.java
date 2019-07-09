@@ -1,7 +1,9 @@
 package TransChat;
 
+import WebTranslator.WebTranslator;
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 
 /**
  * クライアント通信処理スレッド
@@ -73,20 +75,27 @@ public class MyClient extends Thread {
                 String received = in.readLine();
                 // ※readLine()は改行(\n)でメッセージを区切って読込み，改行は
                 // 破棄されてしまうので、表示のために改めて末尾に追加している
-
                 
-                // [全員課題] ユーザ名とメッセージの分割
-                
-                
-                // [全員課題] メッセージを翻訳する
-                
+                // [全員課題] ユーザ名とメッセージの分割  
+                // splited[0] = 言語番号, splited[1] = ユーザー名, splited[2] = メッセージ
+                String[] splited = received.split("\t");
                 
                 // [全員課題] 画面への出力内容を"[ユーザ名] メッセージ"の形式にする
-
+                String username = "[" + splited[1] + "]";
+                
+                // [全員課題] メッセージを翻訳する
+                String message = splited[2];
+                int befor = Integer.valueOf(splited[0]);
+                int after = parent.getLanguageType();
+                if(befor != after) {
+                    WebTranslator wt = new WebTranslator();
+                    message = wt.translation(splited[2], befor, after);
+                    message += " (原文: " + splited[2] + ")";
+                }
                 
                 // チャット画面への出力(ひな形は受け取ったものをそのまま出力)
                 // appendはprintlnと違い自動で改行を入れないので手作業で挿入
-                parent.append(received + "\n");
+                parent.append(username + " " + message +"\n");
 //******************************************************************
             } catch (IOException e) {
                 // 通信エラーなどが発生したらこの処理に入るので、スレッドを停止させる
