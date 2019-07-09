@@ -9,11 +9,12 @@ import java.net.*;
  *       送信はMessageSenderが一括して行ってくれる。
  * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
  */
-public class ServerThread extends Thread {
-    MyServer parent;  // 親クラス
-    Socket socket;    // 通信ソケット
-    InputStream in;   // ソケットの入力インタフェース
-    PrintWriter out;  // ソケットの出力インタフェース
+public class ServerThread extends Thread
+{
+    MyServer parent; // 親クラス
+    Socket socket;   // 通信ソケット
+    InputStream in;  // ソケットの入力インタフェース
+    PrintWriter out; // ソケットの出力インタフェース
     
     public BufferedReader tin = null; // スレッドの読込み元
 
@@ -52,7 +53,7 @@ public class ServerThread extends Thread {
             try {
                 // メッセージを受け取るまで待機
                 String message = tin.readLine(); 
-
+                
                 // メッセージ処理
                 if(message == null){
                     // クライアントに強制切断された場合などにnullが届くので、
@@ -92,6 +93,7 @@ public class ServerThread extends Thread {
     public void close() {
         // 送信先リストから除外する
         parent.closeConnection(this);
+        
         // 各種接続の停止
         try {
 //******************************************************************
@@ -110,5 +112,4 @@ public class ServerThread extends Thread {
 //******************************************************************
         } catch (IOException ex) {}
     }
-
 }

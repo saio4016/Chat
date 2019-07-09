@@ -11,7 +11,6 @@ import java.util.*;
 public class MessageSender
 {
     ArrayList<ServerThread> clist; // 配信先クライアントのリスト
-
     //================================================================
     /**
      * コンストラクタ
@@ -58,9 +57,8 @@ public class MessageSender
             sw.print(str);
             sw.flush();
         }
-        
+ 
 //******************************************************************
-
         //----------------------------------------
         // 後処理
         //----------------------------------------
@@ -72,7 +70,17 @@ public class MessageSender
             System.out.println("Send str \"" + str + "\" to clients.");
         }
     }
-
+    
+    //================================================================
+    /**
+     * サーバーからのメッセージ作成
+     * @param message 内容のみのメッセージ
+     * @return 配信形式に沿ったメッセージ
+     */
+    public String serverMessage(String message) {
+        return "-1" + "\t" + "Server" + "\t" + message;
+    }
+    
     //================================================================
     /**
      * クライアント接続処理
@@ -84,18 +92,19 @@ public class MessageSender
     
     //================================================================
     /**
-     * 指定クライアントを配信先リストから除外
+     * 指定クライアントを配信先リストから除外+各ユーザーに通知
      * @param serv 接続を除外する通信スレッド
      */
     public void closeConnection(ServerThread serv) {
         // 指定クライアントのリスト番号を取得
-        int index  = clist.indexOf(serv);
+        int index = clist.indexOf(serv);
         // 除外処理
         if (index >= 0) {
             // 引数で指定されたスレッドをリストから除外
             clist.remove(serv);
             // 除外されたかを確認
             if (clist.indexOf(serv) == -1) { // リストに無いとき-1が返る
+                sendMessage(serverMessage("との接続が切断されました"));
                 System.out.println(index+"番目のクライアントを切断しました.");
             } else {
                 System.out.println(index+"番目のクライアント切断に失敗しました.");

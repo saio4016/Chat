@@ -41,15 +41,12 @@ public class MyServer extends Thread
      */
     @Override
     public void run() {
-        
         // サーバの接続ルーチンを開始する
-        
         try {
             // 接続依頼を受け付けるためのソケットを生成
             ServerThread serverThread;
             ServerSocket serverSocket = new ServerSocket(port); // 待ち受け窓口
             //※同じportの待ち受け窓口を複数用意することはできません。
-
 //******************************************************************
             //----------------------------------------
             // クライアントとの接続受け付け処理

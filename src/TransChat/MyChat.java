@@ -20,7 +20,8 @@ import javafx.stage.Stage;
  * Excite翻訳を利用した多言語対応チャット
  * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
  */
-public class MyChat extends Application {
+public class MyChat extends Application 
+{
     // アプリ固有に設定した通信ポート番号(定数)
     final int port = 13579; // チャットアプリ用のポート番号
 
@@ -77,19 +78,18 @@ public class MyChat extends Application {
         input.setMinWidth(520);
         input.setPrefWidth(520);
         input.setMaxWidth(520);
-        // キーが押された際のイベントを追加
-        input.setOnKeyPressed(event->onKeyPressedForInput(event));
-        
         // フォントを見やすく変更
         input.setStyle("-fx-font:14pt Meiryo;");
+        // キーが押された際のイベントを追加
+        input.setOnKeyPressed(event->onKeyPressedForInput(event));
 
         //=============================================================
         // 送信ボタン
         enter = new Button(" 送信 ");
-        // 押下時，メッセージ入力欄の内容を送信する
-        enter.setOnAction(event->sendAction());
         // フォントを見やすく変更
         enter.setStyle("-fx-font:14pt Meiryo;");
+        // 押下時，メッセージ入力欄の内容を送信する
+        enter.setOnAction(event->sendAction());
         
         //=============================================================
         // 言語選択欄
@@ -123,6 +123,8 @@ public class MyChat extends Application {
 
         MenuItem mnuExit = new MenuItem("終了");
         mnuExit.setOnAction(event -> exit());
+        //×ボタンでの終了の際も同様に終わらせる
+        stage.setOnCloseRequest(event->exit());
 
         // サブメニューに個別メニューを登録
         ctrlMenu.getItems().addAll(mnuConnect,mnuDisconnect,mnuExit);
@@ -130,7 +132,6 @@ public class MyChat extends Application {
         menuBar.getMenus().add(ctrlMenu);
         
         //=============================================================
-        
         // 入力欄を横一列に配置
         HBox textPane = new HBox();
         textPane.setPadding(new Insets(10,10,10,10));
@@ -158,7 +159,7 @@ public class MyChat extends Application {
             append("すでにサーバと接続中です.");
             return;
         } 
-
+        
 //******************************************************************
         //--------------------------------------------
         // ダイアログからの接続先情報の取得
@@ -212,7 +213,6 @@ public class MyChat extends Application {
         //--------------------------------------------
         
 //******************************************************************
-
         //--------------------------------------------
         // サーバへの接続
         //--------------------------------------------
@@ -311,16 +311,6 @@ public class MyChat extends Application {
         }
     }
     
-    /**
-     * 切断メッセージ送信処理
-     */
-    public void sendClosedMessage() {
-        // メッセージの送信
-        if (netout != null) {  // サーバと接続済みかを確認
-            netout.print(username+"との接続が切断されました."); // サーバにメッセージを送信する
-            netout.flush();
-        }
-    }
     //------------------------------------------------------------------
     /**
      * 出力欄にメッセージを追記する
@@ -341,8 +331,6 @@ public class MyChat extends Application {
      */
     public void close() {
         if (netout != null) {
-            // 切断メッセージの送信
-            sendClosedMessage();
             // 出力インタフェースを閉じる
             netout = null;
             // クライアント接続を切断

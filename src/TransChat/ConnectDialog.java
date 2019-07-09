@@ -16,7 +16,8 @@ import javafx.stage.Window;
  *  接続用ダイアログが共通ダイアログに無いので，Stageを改良して自作
  * @author 
  */
-public class ConnectDialog extends Stage{
+public class ConnectDialog extends Stage
+{
     // 入力情報を記憶しておく内部変数
     String host_val = null;
     String user_val = null;
