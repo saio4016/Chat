@@ -16,17 +16,21 @@ public class WebTranslator {
     // Excite翻訳と通信するための各種情報
     //================================================================
     int before = 0; // 翻訳前の文字列(初期値 0..日本語)
-    int after = 1;  // 翻訳後の文字列(初期値 1..英語)
+    int after  = 1;  // 翻訳後の文字列(初期値 1..英語)
 
     // エキサイト翻訳のサーバホスト情報
     String sysHost = "www.excite.co.jp";
     String sysPort = "80";
 
     // エキサイト翻訳のアクセスパス
-    String urlje = "/world/";      // 日英翻訳のパス
+    String urlje = "/english/";   // 日英翻訳のパス(日、英)
+    String urljc = "/chinese/"; // 日中(日、簡、繁)
+    String urljk = "/korean/";  // 日韓(日、韓)
+    String urljf = "/french/";  // 日仏(日、英、仏)
+    String urljg = "/german/";  // 日独(日、英、独)
 
     //wb_lp　※Excite翻訳で使用
-    final String type[] = {"JA", "EN"};  // JA..日　EN..英
+    final String type[] = {"JA", "EN", "CH", "CH", "KO", "FR", "DE"};  // JA..日　EN..英
     
     //=========================================================================
     /**
@@ -39,7 +43,7 @@ public class WebTranslator {
         WebTranslator gwc = new WebTranslator();
         
         // 翻訳を実行（例：こんにちはを英語に翻訳）した結果をresultに代入
-        String str = gwc.translation("こんにちは", 0, 1);
+        String str = gwc.translation("こんにちは", 0, 6);
         
         // こんにちはを英訳した結果(Webコンテンツ(HTML))を表示
         System.out.println(str);
@@ -78,12 +82,17 @@ public class WebTranslator {
             System.err.println("Translation is failed: langage setting error : 001");
             return word;
         } else if (before == 1 || after == 1) { // 日英or英日の場合
-            url = "https://" + sysHost + urlje;    // 日英変換
-        } //else if (before == 2 || after == 2) { // 日中or中日の場合 ※チャレンジ用
-            /*
-            url = "https://" + sysHost + urljc;    // 日中変換
-            */
-        //} 
+            url = "https://" + sysHost + "/world" + urlje;    // 日英変換
+        } else if (before == 2 || after == 2 || before == 3 || after == 3) { 
+            // 日中or中日の場合 ※チャレンジ用
+            url = "https://" + sysHost + "/world" + urljc;    // 日中変換
+        } else if (before == 4 || after == 4) { // 日韓or韓日
+            url = "https://" + sysHost + "/world" + urljk;    // 日韓
+        } else if (before == 5 || after == 5) { // 日仏or仏日
+            url = "https://" + sysHost + "/world" + urljf;    // 日仏変換
+        } else if (before == 6 || after == 6) { // 日独or独日
+            url = "https://" + sysHost + "/world" + urljg;    // 日独変換
+        }
         else {
             // それ以外のケースはありえないはずだが念のため
             System.err.println("Translation is failed: langage setting error : 002");
@@ -96,7 +105,8 @@ public class WebTranslator {
             Properties props = new Properties();
             props.put("before", word);
             props.put("wb_lp", type[before] + type[after]);
-            //props.put("big5", big5); // チャレンジ用(中国語の簡繁の選択)
+            if(before == 2 || after == 2) props.put("big5", "no");  // チャレンジ用(中国語の簡の選択)
+            if(before == 3 || after == 3) props.put("big5", "yes"); // チャレンジ用(中国語の繁の選択)
 
             // URLクラスにアクセス先情報を設定
             URL target = new URL(url);
@@ -109,7 +119,7 @@ public class WebTranslator {
 
         //===========================================================
         // 翻訳機能を利用するためにWebTranslatorの実体を生成
-        WebTranslator gwc = new WebTranslator();
+        //WebTranslator gwc = new WebTranslator();
         
         // 翻訳を実行
         String reg = "<textarea id=\"after\" .*>.*</textarea>";

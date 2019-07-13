@@ -7,12 +7,12 @@ import java.util.Arrays;
 import java.util.List;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
+import static javafx.scene.input.KeyCode.ENTER;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import static javafx.scene.input.KeyCode.ENTER;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 /**
@@ -28,10 +28,10 @@ public class MyChat extends Application
     //=======================================================
     // メソッドをまたいで参照されるGUIコントロール
     //=======================================================
-    TextArea output;            // 出力エリア
-    TextField input;            // メッセージ入力欄
-    Button enter;               // 発言ボタン
-    ChoiceBox<String> choice;   // 言語選択欄
+    TextArea output;          // 出力エリア
+    TextField input;          // メッセージ入力欄
+    Button enter;             // 発言ボタン
+    ChoiceBox<String> choice; // 言語選択欄
     
     //=======================================================
     // 他の処理で参照する変数
@@ -43,11 +43,12 @@ public class MyChat extends Application
     String username = "Unknown";
     
     // 状態管理用変数
-    int language_type = 0;  // 使用言語
+    int language_type = 0; // 使用言語
    
     // 言語リスト(選択肢に利用する)
     List<String> lang_list = Arrays.asList(
-                "Japanese","English","Chinese"
+                "日本語(jp)","英語(en)","中国語(簡体字)","中国語(繁体字)",
+                "韓国語(ko)","フランス語(fr)","ドイツ語(de)"
             );
    
     //------------------------------------------------------------------
@@ -100,9 +101,8 @@ public class MyChat extends Application
         // オブジェクト指向言語の演習で示したサンプルを参考に自分で設定する
         // 言語番号の設定はこのプログラムにあるsetLanguageTypeを使うこと
         choice.setOnAction(
-                e->setLanguageType(lang_list.indexOf(((ChoiceBox)e.getSource()).getValue()))
+                e->setLanguageType(lang_list.indexOf(choice.getValue()))
         );
-        
         // 最初の選択肢が選択された状態を初期状態にする
         choice.getSelectionModel().selectFirst();
         
@@ -123,6 +123,7 @@ public class MyChat extends Application
 
         MenuItem mnuExit = new MenuItem("終了");
         mnuExit.setOnAction(event -> exit());
+        
         //×ボタンでの終了の際も同様に終わらせる
         stage.setOnCloseRequest(event->exit());
 
@@ -189,7 +190,7 @@ public class MyChat extends Application
         String hostname = "localhost";
         // ダイアログからの取得が可能な場合は，取得した情報で
         // hostnameを上書きする，取得できない場合はlocalhostを使う
-        if(!dialog.getUser_val().isEmpty()) {
+        if(!dialog.getHost_val().isEmpty()) {
             hostname = dialog.getHost_val();
         }
         //--------------------------------------------
@@ -229,7 +230,11 @@ public class MyChat extends Application
 
         if (netout != null) {
             append("サーバに接続しました.");
-            append("Server:" + hostname + " Port:" + port);
+            append("Server: "+hostname+"   Port:"+port);
+            
+            // サーバーにユーザー名を登録
+            netout.print(username+"\n");
+            netout.flush();
         } else {
             // 接続処理は終了したがインタフェースが生成されていない(接続失敗)
             append("サーバとの接続に失敗しました.");
@@ -241,7 +246,11 @@ public class MyChat extends Application
      * 「切断」メニュー選択時の処理
      */
     void disconnectAction() {
-        close();
+        if(netout == null){
+            append("サーバに接続されていません.");
+        } else {
+            close();
+        }
     }
     
     //------------------------------------------------------------------
@@ -265,11 +274,22 @@ public class MyChat extends Application
         input.setText("");
     }
     
+    //------------------------------------------------------------------
     /**
      * キーが押された場合の処理
      */
     void onKeyPressedForInput(KeyEvent event) {
+        // 押されたキーがエンターならメッセージを送信
         if(event.getCode() == ENTER) sendAction();
+    }
+    
+    //------------------------------------------------------------------
+    /**
+     * ユーザー名を返す
+     * @return ユーザー名
+     */
+    public String getUserName() {
+        return username;
     }
     
     //------------------------------------------------------------------
@@ -302,7 +322,7 @@ public class MyChat extends Application
         }
 
         // 送信メッセージの生成
-        str = getLanguageType() + "\t" + username + "\t" + str; // 言語番号 ユーザ名 メッセージ
+        str = getLanguageType()+"\t"+username+"\t"+str; // 言語番号 ユーザ名 メッセージ
 
         // メッセージの送信
         if (netout != null) {  // サーバと接続済みかを確認
@@ -330,7 +350,9 @@ public class MyChat extends Application
      * 切断処理
      */
     public void close() {
-        if (netout != null) {
+        if(netout == null) {
+            append("サーバに接続されていません.");
+        } else {
             // 出力インタフェースを閉じる
             netout = null;
             // クライアント接続を切断

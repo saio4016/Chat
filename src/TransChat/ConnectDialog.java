@@ -14,7 +14,7 @@ import javafx.stage.Window;
 
 /**
  *  接続用ダイアログが共通ダイアログに無いので，Stageを改良して自作
- * @author 
+ *  @author 
  */
 public class ConnectDialog extends Stage
 {

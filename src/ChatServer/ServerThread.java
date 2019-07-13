@@ -1,7 +1,9 @@
 package ChatServer;
 
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * クライアントとの個別通信処理スレッド
@@ -19,7 +21,7 @@ public class ServerThread extends Thread
     public BufferedReader tin = null; // スレッドの読込み元
 
     private boolean status = true;
-
+    
     //=========================================================================
     /**
      * コンストラクタ
@@ -47,23 +49,36 @@ public class ServerThread extends Thread
      */
     @Override
     public void run() {
+        try {
+            String username = tin.readLine();
+            parent.addUserName(this, username);
+        } catch (IOException ex) {
+            status = false;
+            System.err.println("通信異常が発生したため接続を切断します.");
+        }
+        
         // ソケットにクライアントからメッセージデータが届いたら、
         // 末尾に改行を付加して、そのまま配信部に流す
         while (status) {
             try {
                 // メッセージを受け取るまで待機
                 String message = tin.readLine(); 
-                
                 // メッセージ処理
-                if(message == null){
+                if(message == null) {
                     // クライアントに強制切断された場合などにnullが届くので、
                     // その場合はループを終了させる
                     status = false;
                 }else{
 //******************************************************************
-                    // 通常のメッセージならば末尾に改行を付けて配信部に流す
-                    parent.sendMessage(message+"\n");
-                    // 全員課題でのメッセージの転送処理ではこの処理はこのまま使う
+                    /*String[] splited = message.split("\t");
+                    if(splited[0].equals("-10")) {
+                        //言語番号として-10が渡されたらサーバにユーザー名を登録
+                        parent.addUserName(this,splited[1]);
+                    } else */{
+                        // 通常のメッセージならば末尾に改行を付けて配信部に流す
+                        parent.sendMessage(message+"\n");
+                        // 全員課題でのメッセージの転送処理ではこの処理はこのまま使う
+                    }
 //******************************************************************
                 }
             } catch (IOException ex) {
@@ -93,7 +108,6 @@ public class ServerThread extends Thread
     public void close() {
         // 送信先リストから除外する
         parent.closeConnection(this);
-        
         // 各種接続の停止
         try {
 //******************************************************************
