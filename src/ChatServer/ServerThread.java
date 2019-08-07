@@ -2,32 +2,33 @@ package ChatServer;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- * クライアントとの個別通信処理スレッド
- * 役割：1つのクライアントとの通信を管理する。具体的には受信管理。
- *       送信はMessageSenderが一括して行ってくれる。
- * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
+ * クライアントとの個別通信処理スレッド 役割：1つのクライアントとの通信を管理する。具体的には受信管理。
+ * 送信はMessageSenderが一括して行ってくれる。
+ *
+ * @author 18024115
  */
-public class ServerThread extends Thread
-{
+public class ServerThread extends Thread {
+
     MyServer parent; // 親クラス
     Socket socket;   // 通信ソケット
     InputStream in;  // ソケットの入力インタフェース
     PrintWriter out; // ソケットの出力インタフェース
-    
+
     public BufferedReader tin = null; // スレッドの読込み元
 
-    private boolean status = true;
-    
+    private boolean status = true; // クライアント稼働判定
+
+    private String username; //通信先のクライアントのユーザー名
+
     //=========================================================================
     /**
      * コンストラクタ
+     *
      * @param parent MyServerへの参照
      * @param socket 通信相手とのSocket
-     * @throws Exception 
+     * @throws Exception
      */
     ServerThread(MyServer parent, Socket socket) throws Exception {
         this.parent = parent;
@@ -50,35 +51,30 @@ public class ServerThread extends Thread
     @Override
     public void run() {
         try {
-            String username = tin.readLine();
-            parent.addUserName(this, username);
+            String name = tin.readLine();
+            username = name;
+            parent.addUserName(this, name);
         } catch (IOException ex) {
             status = false;
             System.err.println("通信異常が発生したため接続を切断します.");
         }
-        
+
         // ソケットにクライアントからメッセージデータが届いたら、
         // 末尾に改行を付加して、そのまま配信部に流す
         while (status) {
             try {
                 // メッセージを受け取るまで待機
-                String message = tin.readLine(); 
+                String message = tin.readLine();
                 // メッセージ処理
-                if(message == null) {
+                if (message == null) {
                     // クライアントに強制切断された場合などにnullが届くので、
                     // その場合はループを終了させる
                     status = false;
-                }else{
+                } else {
 //******************************************************************
-                    /*String[] splited = message.split("\t");
-                    if(splited[0].equals("-10")) {
-                        //言語番号として-10が渡されたらサーバにユーザー名を登録
-                        parent.addUserName(this,splited[1]);
-                    } else */{
-                        // 通常のメッセージならば末尾に改行を付けて配信部に流す
-                        parent.sendMessage(message+"\n");
-                        // 全員課題でのメッセージの転送処理ではこの処理はこのまま使う
-                    }
+                    // 通常のメッセージならば末尾に改行を付けて配信部に流す
+                    parent.sendMessage(message + "\n");
+                    // 全員課題でのメッセージの転送処理ではこの処理はこのまま使う
 //******************************************************************
                 }
             } catch (IOException ex) {
@@ -95,10 +91,28 @@ public class ServerThread extends Thread
     //=========================================================================
     /**
      * ライターの取得
+     *
      * @return MessageSenderが送信に使用するライター
      */
     public PrintWriter getWriter() {
         return out;
+    }
+
+    /**
+     * ユーザー名のゲッター
+     *
+     * @return 通信先のクライアントのユーザー名
+     */
+    public String getUserName() {
+        return username;
+    }
+    
+    /**
+     * ユーザー名のセッター
+     *
+     */
+    public void setUserName(String username) {
+        this.username = username;
     }
 
     //=========================================================================
@@ -124,6 +138,7 @@ public class ServerThread extends Thread
             socket = null;
             parent = null;
 //******************************************************************
-        } catch (IOException ex) {}
+        } catch (IOException ex) {
+        }
     }
 }

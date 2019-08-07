@@ -1,15 +1,16 @@
 package ChatServer;
 
 import java.net.*;
+
 /**
- * チャットサーバ
- * 役割：全体の管理。クライアントからの接続を待ち、個別の通信スレッドを起動する
- * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
+ * チャットサーバ 役割：全体の管理。クライアントからの接続を待ち、個別の通信スレッドを起動する
+ *
+ * @author 18024115
  */
-public class MyServer extends Thread
-{
+public class MyServer extends Thread {
+
     int port = 13579; // アプリケーションの通信ポート番号(適当に決定)
-    
+
     private boolean status = true; // 状態管理フラグ
 
     public MessageSender sender; // メッセージ配信スレッド
@@ -17,7 +18,8 @@ public class MyServer extends Thread
     //================================================================
     /**
      * メインメソッド
-     * @param args 
+     *
+     * @param args
      */
     public static void main(String args[]) {
         MyServer server = new MyServer(); // このクラス自身のインスタンスを生成
@@ -51,11 +53,11 @@ public class MyServer extends Thread
             // クライアントとの接続受け付け処理
             //----------------------------------------
             // クライアントからの接続依頼を待つ
-            while(status) {
+            while (status) {
                 System.out.println("Waiting request to connect...");
                 // 接続依頼が来るまで待機
                 Socket socket = serverSocket.accept();
-                
+
                 // ※接続依頼があると以下の処理に進みます
                 // 接続依頼のあったクライアントとのソケットを渡し、通信処理部(ServerThread)を生成
                 serverThread = new ServerThread(this, socket);
@@ -71,19 +73,19 @@ public class MyServer extends Thread
         }
         System.out.println("Server is finished.");
     }
-    
+
     //================================================================
     /**
      * ユーザー名を登録する
+     *
      * @param servThread ユーザー名を登録する通信スレッド
      * @param username 追加するユーザー名
      */
-    public void addUserName(ServerThread servThread,String username) {
+    public void addUserName(ServerThread servThread, String username) {
         servThread.setName(username);
-        // 接続メッセージを自分には送りたくないため、
-        // 配信スレッドからいったん削除する
-        sender.closeConnectionWithoutNotice(servThread);
-        sendMessage("-1"+"\t"+"Server"+"\t"+username+"が接続しました"+"\n");
+        // 接続メッセージを自分には送りたくないため、配信スレッドからいったん削除する
+        sender.pauseConnection(servThread);
+        sendMessage("-1" + "\t" + "Server" + "\t" + username + "が接続しました" + "\n");
         // 配信スレッドに再接続
         sender.addConnection(servThread);
     }
@@ -91,21 +93,23 @@ public class MyServer extends Thread
     //================================================================
     /**
      * 指定されたクライアントとの通信を停止する
+     *
      * @param servThread 停止する通信スレッド
      */
     public void closeConnection(ServerThread servThread) {
         sender.closeConnection(servThread);
         // 停止メッセージ
-        sendMessage("-1"+"\t"+"Server"+"\t"+servThread.getName()+"との接続が切断されました"+"\n");
+        sendMessage("-1" + "\t" + "Server" + "\t" + servThread.getName() + "との接続が切断されました" + "\n");
     }
 
     //================================================================
     /**
      * メッセージを送信する
+     *
      * @param message メッセージ
      */
     public void sendMessage(String message) {
-        sender.sendMessage(message);        
+        sender.sendMessage(message);
     }
 
     //================================================================
@@ -121,4 +125,3 @@ public class MyServer extends Thread
         status = false;
     }
 }
-

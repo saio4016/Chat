@@ -4,14 +4,14 @@ import java.io.*;
 import java.util.*;
 
 /**
- * メッセージ配信スレッド
- * 役割：接続してきたクライアントをリストし、受信発言を全クライアントに配信する
- * @author 学籍番号　氏名　// 自分の氏名・番号を記入して下さい
+ * メッセージ配信スレッド 役割：接続してきたクライアントをリストし、受信発言を全クライアントに配信する
+ *
+ * @author 18024115
  */
-public class MessageSender
-{
+public class MessageSender {
+
     ArrayList<ServerThread> clist; // 配信先クライアントのリスト
-    
+
     //================================================================
     /**
      * コンストラクタ
@@ -23,6 +23,7 @@ public class MessageSender
     //================================================================
     /**
      * メッセージ配信処理
+     *
      * @param message 配信するメッセージ
      */
     public synchronized void sendMessage(String message) {
@@ -30,7 +31,7 @@ public class MessageSender
         // 前処理
         //----------------------------------------
         String str = message;
-        
+
         // 末尾改行の追加(既についている場合は除外)
         if (str != null && !str.endsWith("\n")) {
             str += "\n";
@@ -42,22 +43,22 @@ public class MessageSender
             System.out.println("メッセージ送信先が見つかりません.");
             return; // sendMessageを終了
         }
-        
+
 //******************************************************************
         //----------------------------------------
         // 【メイン処理】クライアントにメッセージを送信する
         //----------------------------------------
         for (ServerThread client : clist) {
             // 各クライアントとの接続を取得
-            ServerThread serv = (ServerThread)client;
+            ServerThread serv = (ServerThread) client;
             // クライアントへの出力インタフェースを取得
             PrintWriter sw = serv.getWriter();
             // メッセージの書き出し
             sw.print(str);
             sw.flush();
         }
-        
 //******************************************************************
+
         //----------------------------------------
         // 後処理
         //----------------------------------------
@@ -69,19 +70,21 @@ public class MessageSender
             System.out.println("Send str \"" + str + "\" to clients.");
         }
     }
-    
+
     //================================================================
     /**
      * クライアント接続処理
+     *
      * @param serv 接続先との通信スレッド
      */
     public void addConnection(ServerThread serv) {
         clist.add(serv); // 新たなクライアントとの接続を配信先リストに追加
     }
-    
+
     //================================================================
     /**
      * 指定クライアントを配信先リストから除外
+     *
      * @param serv 接続を除外する通信スレッド
      */
     public void closeConnection(ServerThread serv) {
@@ -93,31 +96,41 @@ public class MessageSender
             clist.remove(serv);
             // 除外されたかを確認
             if (clist.indexOf(serv) == -1) { // リストに無いとき-1が返る
-                System.out.println(index+"番目のクライアントを切断しました.");
+                System.out.println(index + "番目のクライアントを切断しました.");
             } else {
-                System.out.println(index+"番目のクライアント切断に失敗しました.");
+                System.out.println(index + "番目のクライアント切断に失敗しました.");
             }
         } else {
             // ここには入らない予定
-            System.err.println(index+"番目のクライアントが選択されました.");
+            System.err.println(index + "番目のクライアントが選択されました.");
         }
     }
-    
+
     //================================================================
     /**
-     * closeConnectionメソッドの出力なしバージョン
+     * closeConnectionメソッドの出力変更バージョン
+     *
      * @param serv 接続を除外する通信スレッド
      */
-    public void closeConnectionWithoutNotice(ServerThread serv) {
+    public void pauseConnection(ServerThread serv) {
         // 指定クライアントのリスト番号を取得
         int index = clist.indexOf(serv);
         // 除外処理
         if (index >= 0) {
             // 引数で指定されたスレッドをリストから除外
             clist.remove(serv);
+            // 除外されたかを確認
+            if (clist.indexOf(serv) == -1) { // リストに無いとき-1が返る
+                System.out.println(index + "番目のクライアントを一時切断しました.");
+            } else {
+                System.out.println(index + "番目のクライアント一時切断に失敗しました.");
+            }
+        } else {
+            // ここには入らない予定
+            System.err.println(index + "番目のクライアントが選択されました.");
         }
     }
-    
+
     //================================================================
     /**
      * 終了処理：すべての接続を一括で終了する
